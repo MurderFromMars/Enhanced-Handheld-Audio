@@ -350,15 +350,21 @@ describe_sink() {
 
 detect_default_sink() {
     local sinks
-    sinks=$(pw-cli list-objects Node 2>/dev/null \
-        | grep -oP 'node\.name = "\Kalsa_output[^"]+' \
-        | head -20)
+    
+    # Try pw-cli first - extract node.name values for alsa_output devices
+    # Use sed to properly parse the quoted string values
+    sinks=$(pw-cli list-objects Node 2>/dev/null | \
+        sed -n 's/.*node\.name = "\(alsa_output[^"]*\)".*/\1/p' | \
+        sort -u | \
+        head -20)
 
+    # Fallback to pactl if pw-cli didn't find anything
     if [[ -z "$sinks" ]]; then
-        sinks=$(pactl list sinks short 2>/dev/null \
-            | awk '{print $2}' \
-            | grep '^alsa_output' \
-            | head -20)
+        sinks=$(pactl list sinks short 2>/dev/null | \
+            awk '{print $2}' | \
+            grep '^alsa_output' | \
+            sort -u | \
+            head -20)
     fi
 
     [[ -z "$sinks" ]] && return 1
@@ -436,7 +442,7 @@ if [[ -z "$SINK_NAME" ]]; then
     
     # Only show this if we auto-detected a single device (not if user selected from menu)
     if [[ "$(pactl list sinks short 2>/dev/null | grep '^alsa_output' | wc -l)" -eq 1 ]] || \
-       [[ "$(pw-cli list-objects Node 2>/dev/null | grep -oP 'node\.name = "\Kalsa_output[^"]+' | wc -l)" -eq 1 ]]; then
+       [[ "$(pw-cli list-objects Node 2>/dev/null | sed -n 's/.*node\.name = "\(alsa_output[^"]*\)".*/\1/p' | wc -l)" -eq 1 ]]; then
         echo ""
         ok "Auto-detected: $(describe_sink "$SINK_NAME")"
         echo -e "   ${DIM}Device: $SINK_NAME${NC}"
