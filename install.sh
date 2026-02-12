@@ -371,12 +371,13 @@ detect_default_sink() {
 
     local count
     count=$(echo "$sinks" | wc -l)
+    
     if [[ "$count" -eq 1 ]]; then
-        echo "$sinks"
+        SINK_NAME="$sinks"
         return 0
     fi
 
-    # Display menu normally (not captured)
+    # Display menu
     echo ""
     header "Multiple Audio Devices Detected"
     echo ""
@@ -413,10 +414,9 @@ detect_default_sink() {
     while true; do
         read -rp "$(echo -e ${CYAN}"Select device [1-$count]: "${NC})" choice
         if [[ "$choice" =~ ^[0-9]+$ ]] && (( choice >= 1 && choice <= count )); then
-            local selected_sink="${sink_array[$choice]}"
+            SINK_NAME="${sink_array[$choice]}"
             echo ""
-            ok "Selected: $(describe_sink "$selected_sink")"
-            echo "$selected_sink"
+            ok "Selected: $(describe_sink "$SINK_NAME")"
             return 0
         fi
         warn "Invalid choice. Please enter a number between 1 and $count."
@@ -429,9 +429,8 @@ if [[ -z "$SINK_NAME" ]]; then
     echo ""
     step "Scanning for available audio sinks..."
     
-    # Don't capture the function output during interactive selection
-    # The function will display the menu and only return the final selection
-    SINK_NAME=$(detect_default_sink)
+    # Call function directly - it sets SINK_NAME internally
+    detect_default_sink
     
     if [[ -z "$SINK_NAME" ]]; then
         err "Could not detect any ALSA output sinks."
