@@ -20,7 +20,7 @@ The virtual sink stacks on top of the hardware sink, giving you a separate volum
 ## Quick Install
 
 ```
-sh -c 'tmp=$(mktemp -d) && curl -fsSL https://github.com/MurderFromMars/Enhanced-Handheld-Audio/archive/main.tar.gz | tar -xz -C "$tmp" --strip-components=1 && "$tmp/install.sh" && rm -rf "$tmp"'
+sh -c 'tmp=$(mktemp -d) && curl -fsSL https://github.com/MurderFromMars/Enhanced-Handheld-Audio/archive/main.tar.gz | tar -xz -C "$tmp" --strip-components=1 && chmod +x "$tmp/install.sh" && "$tmp/install.sh" && rm -rf "$tmp"'
 ```
 
 Or clone and run manually:
