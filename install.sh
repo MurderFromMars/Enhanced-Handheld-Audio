@@ -7,7 +7,7 @@
 # stacks on top of your hardware speakers for amplification control.
 #
 # Usage:
-#   ./install.sh                          # auto-detect, medium intensity
+#   ./install.sh                          # interactive mode (recommended)
 #   ./install.sh --intensity light        # subtle spatial effect
 #   ./install.sh --intensity heavy        # aggressive spatial effect
 #   ./install.sh --sink <node.name>       # target a specific ALSA sink
@@ -25,31 +25,110 @@ PIPEWIRE_CONF_DIR="$PIPEWIRE_DIR/pipewire.conf.d"
 CONF_FILE="$PIPEWIRE_CONF_DIR/handheld-audio-enhance.conf"
 IR_DEST="$PIPEWIRE_DIR/handheld-audio-enhance-ir.wav"
 SINK_NAME=""
-INTENSITY="medium"
+INTENSITY=""
 DISPLAY_NAME="Enhanced Audio"
-INSTALL_SUSPEND_FIX=false
+INSTALL_SUSPEND_FIX=""
 UNINSTALL=false
+INTERACTIVE_MODE=true
 
 # ── Colour helpers ──────────────────────────────────────────────────────────
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; CYAN='\033[0;36m'
-BOLD='\033[1m'; NC='\033[0m'
-info()  { echo -e "${CYAN}[INFO]${NC}  $*"; }
-ok()    { echo -e "${GREEN}[OK]${NC}    $*"; }
-warn()  { echo -e "${YELLOW}[WARN]${NC}  $*"; }
-err()   { echo -e "${RED}[ERR]${NC}   $*" >&2; }
+BLUE='\033[0;34m'; MAGENTA='\033[0;35m'; BOLD='\033[1m'; DIM='\033[2m'; NC='\033[0m'
+
+info()    { echo -e "${CYAN}●${NC} $*"; }
+ok()      { echo -e "${GREEN}✓${NC} $*"; }
+warn()    { echo -e "${YELLOW}⚠${NC} $*"; }
+err()     { echo -e "${RED}✗${NC} $*" >&2; }
+header()  { echo -e "\n${BOLD}${BLUE}▌ $*${NC}"; }
+step()    { echo -e "${MAGENTA}→${NC} ${DIM}$*${NC}"; }
+
+# ── Banner ──────────────────────────────────────────────────────────────────
+show_banner() {
+    clear
+    echo -e "${BOLD}${CYAN}"
+    cat << "BANNER"
+╔═══════════════════════════════════════════════════════════════════╗
+║                                                                   ║
+║        🎧  Enhanced Handheld Audio Installer  🎧                 ║
+║                                                                   ║
+║     Spatial Audio Processing for Linux Gaming Handhelds          ║
+║                                                                   ║
+╚═══════════════════════════════════════════════════════════════════╝
+BANNER
+    echo -e "${NC}"
+}
+
+# ── Help menu ───────────────────────────────────────────────────────────────
+show_help() {
+    show_banner
+    cat << EOF
+${BOLD}WHAT THIS DOES:${NC}
+  Creates a virtual audio output device that applies spatial processing to
+  your handheld's built-in speakers, making them sound wider and more
+  immersive using advanced convolution and crossfeed techniques.
+
+${BOLD}COMMAND LINE OPTIONS:${NC}
+  ${CYAN}--intensity${NC} <light|medium|heavy>
+      ${DIM}Adjust the strength of the spatial effect:${NC}
+      • ${GREEN}light${NC}  - Subtle enhancement, natural sound (recommended for movies/music)
+      • ${YELLOW}medium${NC} - Balanced spatial widening (great all-rounder)
+      • ${RED}heavy${NC}  - Maximum spatial effect (best for gaming)
+
+  ${CYAN}--sink${NC} <node.name>
+      ${DIM}Manually specify which audio device to enhance${NC}
+      Example: --sink alsa_output.pci-0000_00_1f.3.analog-stereo
+      ${DIM}(Auto-detected if not specified)${NC}
+
+  ${CYAN}--name${NC} "Custom Name"
+      ${DIM}Set a custom display name for the virtual audio device${NC}
+      Default: "Enhanced Audio"
+
+  ${CYAN}--suspend-fix${NC}
+      ${DIM}Install a systemd service to fix audio distortion after suspend/resume${NC}
+      ${DIM}(Some handhelds experience crackling audio after sleep)${NC}
+
+  ${CYAN}--uninstall${NC}
+      ${DIM}Remove all configurations and restore original audio setup${NC}
+
+  ${CYAN}-h, --help${NC}
+      ${DIM}Show this help message${NC}
+
+${BOLD}EXAMPLES:${NC}
+  ${DIM}# Interactive mode (recommended for first-time users):${NC}
+  ./install.sh
+
+  ${DIM}# Quick install with light spatial effect:${NC}
+  ./install.sh --intensity light
+
+  ${DIM}# Install with suspend fix for devices with post-sleep audio issues:${NC}
+  ./install.sh --intensity medium --suspend-fix
+
+  ${DIM}# Completely remove the enhancement:${NC}
+  ./install.sh --uninstall
+
+${BOLD}AFTER INSTALLATION:${NC}
+  1. A new audio device will appear in your sound settings
+  2. Set it as your default output device
+  3. Max out your hardware speaker volume slider
+  4. Control loudness from the virtual device slider
+
+${BOLD}MORE INFO:${NC}
+  GitHub: https://github.com/MurderFromMars/Enhanced-Handheld-Audio
+  
+EOF
+}
 
 # ── Argument parsing ────────────────────────────────────────────────────────
 while [[ $# -gt 0 ]]; do
+    INTERACTIVE_MODE=false
     case "$1" in
         --sink)         SINK_NAME="$2"; shift 2 ;;
         --intensity)    INTENSITY="$2"; shift 2 ;;
         --name)         DISPLAY_NAME="$2"; shift 2 ;;
         --suspend-fix)  INSTALL_SUSPEND_FIX=true; shift ;;
         --uninstall)    UNINSTALL=true; shift ;;
-        -h|--help)
-            sed -n '2,/^# ====/{ /^# ====/d; s/^# \?//; p }' "$0"
-            exit 0 ;;
-        *) err "Unknown option: $1"; exit 1 ;;
+        -h|--help)      show_help; exit 0 ;;
+        *) err "Unknown option: $1"; echo ""; echo "Use --help for usage information"; exit 1 ;;
     esac
 done
 
@@ -61,38 +140,147 @@ fi
 
 # ── Uninstall path ──────────────────────────────────────────────────────────
 if $UNINSTALL; then
-    info "Uninstalling Handheld Audio Enhance..."
+    show_banner
+    header "Uninstallation"
+    echo ""
+    
+    info "Removing Enhanced Handheld Audio..."
+    echo ""
 
-    rm -f "$CONF_FILE" "$IR_DEST"
+    if [[ -f "$CONF_FILE" ]]; then
+        rm -f "$CONF_FILE"
+        ok "Removed PipeWire configuration"
+    fi
+
+    if [[ -f "$IR_DEST" ]]; then
+        rm -f "$IR_DEST"
+        ok "Removed impulse response file"
+    fi
 
     if systemctl --user is-enabled pipewire-fix-audio-after-suspend.service &>/dev/null 2>&1 ||
        [[ -f /etc/systemd/system/pipewire-fix-audio-after-suspend.service ]]; then
-        info "Removing suspend fix (may need sudo)..."
+        echo ""
+        info "Removing suspend fix (requires sudo)..."
         sudo systemctl disable --now pipewire-fix-audio-after-suspend.service 2>/dev/null || true
         sudo rm -f /etc/systemd/system/pipewire-fix-audio-after-suspend.service
         rm -f "$HOME/.local/bin/pipewire-fix-audio-after-suspend.sh"
+        ok "Removed suspend fix service"
     fi
 
+    echo ""
+    info "Restarting PipeWire services..."
     systemctl --user restart wireplumber pipewire pipewire-pulse 2>/dev/null || true
-    ok "Uninstalled. Restarted PipeWire."
+    
+    echo ""
+    ok "${GREEN}${BOLD}Uninstallation complete!${NC}"
+    echo ""
+    info "Your audio setup has been restored to default"
+    echo ""
     exit 0
 fi
 
 # ── Dependency check ────────────────────────────────────────────────────────
+show_banner
+header "Checking System Requirements"
+echo ""
+
+MISSING_DEPS=false
 for cmd in pw-cli pw-metadata pactl; do
-    if ! command -v "$cmd" &>/dev/null; then
-        err "Missing required command: $cmd"
-        err "Install PipeWire and its tools first."
-        exit 1
+    if command -v "$cmd" &>/dev/null; then
+        ok "Found: $cmd"
+    else
+        err "Missing: $cmd"
+        MISSING_DEPS=true
     fi
 done
+
+if $MISSING_DEPS; then
+    echo ""
+    err "Required PipeWire tools are missing!"
+    echo ""
+    info "Please install PipeWire and its utilities:"
+    echo "  ${DIM}Arch/CachyOS:    ${NC}sudo pacman -S pipewire pipewire-pulse wireplumber"
+    echo "  ${DIM}Fedora:          ${NC}sudo dnf install pipewire pipewire-pulseaudio wireplumber"
+    echo "  ${DIM}Ubuntu/Debian:   ${NC}sudo apt install pipewire pipewire-pulse wireplumber"
+    echo ""
+    exit 1
+fi
+
+echo ""
+ok "${GREEN}All dependencies satisfied${NC}"
+sleep 1
+
+# ── Interactive prompts ─────────────────────────────────────────────────────
+if $INTERACTIVE_MODE; then
+    # Intensity selection
+    if [[ -z "$INTENSITY" ]]; then
+        header "Select Spatial Enhancement Intensity"
+        echo ""
+        echo "  Choose how strong you want the spatial effect:"
+        echo ""
+        echo "  ${GREEN}1)${NC} ${BOLD}Light${NC}    - Subtle enhancement, keeps natural sound"
+        echo "               ${DIM}Best for: Movies, music, podcasts${NC}"
+        echo "               ${DIM}Effect: Gentle widening, minimal coloration${NC}"
+        echo ""
+        echo "  ${YELLOW}2)${NC} ${BOLD}Medium${NC}   - Balanced spatial widening (recommended)"
+        echo "               ${DIM}Best for: General use, most games${NC}"
+        echo "               ${DIM}Effect: Noticeable depth without being unnatural${NC}"
+        echo ""
+        echo "  ${RED}3)${NC} ${BOLD}Heavy${NC}    - Maximum spatial effect"
+        echo "               ${DIM}Best for: Competitive gaming, action games${NC}"
+        echo "               ${DIM}Effect: Strong surround-like processing${NC}"
+        echo ""
+        
+        while true; do
+            read -rp "$(echo -e ${CYAN}Select option [1-3]:${NC} )" choice
+            case "$choice" in
+                1) INTENSITY="light"; break ;;
+                2) INTENSITY="medium"; break ;;
+                3) INTENSITY="heavy"; break ;;
+                *) warn "Invalid choice. Please enter 1, 2, or 3." ;;
+            esac
+        done
+        
+        ok "Selected: ${BOLD}${INTENSITY}${NC} intensity"
+        sleep 1
+    fi
+    
+    # Suspend fix option
+    if [[ -z "$INSTALL_SUSPEND_FIX" ]]; then
+        echo ""
+        header "Suspend/Resume Audio Fix"
+        echo ""
+        echo "  Some handhelds experience crackling or distorted audio after"
+        echo "  waking from sleep/suspend. This installs a systemd service that"
+        echo "  automatically fixes PipeWire audio after resume."
+        echo ""
+        echo "  ${DIM}This requires sudo privileges to install the system service.${NC}"
+        echo ""
+        
+        while true; do
+            read -rp "$(echo -e ${CYAN}Install suspend fix? [y/N]:${NC} )" choice
+            case "$choice" in
+                [Yy]* ) INSTALL_SUSPEND_FIX=true; break ;;
+                [Nn]* | "" ) INSTALL_SUSPEND_FIX=false; break ;;
+                * ) warn "Please answer y or n." ;;
+            esac
+        done
+        
+        if $INSTALL_SUSPEND_FIX; then
+            ok "Will install suspend fix"
+        else
+            info "Skipping suspend fix"
+        fi
+        sleep 1
+    fi
+fi
 
 # ── Validate intensity ──────────────────────────────────────────────────────
 case "$INTENSITY" in
     light|medium|heavy) ;;
     *)
-        err "Unknown intensity: $INTENSITY"
-        err "Choose: light, medium, heavy"
+        err "Invalid intensity: $INTENSITY"
+        err "Choose: light, medium, or heavy"
         exit 1 ;;
 esac
 
@@ -120,59 +308,92 @@ detect_default_sink() {
     fi
 
     echo ""
-    info "Multiple audio output sinks detected:"
+    header "Multiple Audio Devices Detected"
+    echo ""
+    info "Please select which device to enhance:"
     echo ""
     local i=1
     while IFS= read -r sink; do
-        echo "  $i) $sink"
+        echo "  ${CYAN}$i)${NC} $sink"
         i=$((i + 1))
     done <<< "$sinks"
     echo ""
 
     while true; do
-        read -rp "Select sink [1-$count]: " choice
+        read -rp "$(echo -e ${CYAN}Select device [1-$count]:${NC} )" choice
         if [[ "$choice" =~ ^[0-9]+$ ]] && (( choice >= 1 && choice <= count )); then
             echo "$sinks" | sed -n "${choice}p"
             return 0
         fi
-        warn "Invalid choice, try again."
+        warn "Invalid choice, please try again."
     done
 }
 
 if [[ -z "$SINK_NAME" ]]; then
-    info "Auto-detecting default audio output sink..."
+    echo ""
+    header "Detecting Audio Output Device"
+    echo ""
+    step "Scanning for available audio sinks..."
+    
     SINK_NAME=$(detect_default_sink) || true
 
     if [[ -z "$SINK_NAME" ]]; then
         err "Could not detect any ALSA output sinks."
-        err "Use --sink <node.name> to specify manually."
-        err "Run: pw-cli list-objects Node | grep 'node.name.*alsa_output'"
+        echo ""
+        info "To manually specify a sink, run:"
+        echo "  ${DIM}pw-cli list-objects Node | grep 'node.name.*alsa_output'${NC}"
+        echo ""
+        echo "Then re-run with: ${CYAN}./install.sh --sink <node.name>${NC}"
         exit 1
     fi
-    ok "Detected sink: $SINK_NAME"
+    
+    echo ""
+    ok "Using sink: ${BOLD}$SINK_NAME${NC}"
+    sleep 1
 fi
 
 # ── Resolve IR file ─────────────────────────────────────────────────────────
+echo ""
+header "Preparing Impulse Response File"
+echo ""
+
 IR_SRC="$SCRIPT_DIR/spatial_${INTENSITY}.wav"
 
 if [[ ! -f "$IR_SRC" ]]; then
     # Try generating it if the generator script is present
     if [[ -f "$SCRIPT_DIR/generate_ir.py" ]] && command -v python3 &>/dev/null; then
-        info "IR file not found, generating spatial_${INTENSITY}.wav..."
+        step "IR file not found, generating spatial_${INTENSITY}.wav..."
         python3 "$SCRIPT_DIR/generate_ir.py" --intensity "$INTENSITY" -o "$IR_SRC"
+        ok "Generated custom impulse response"
     else
         err "IR file not found: $IR_SRC"
-        err "Run generate_ir.py first, or ensure spatial_*.wav files are alongside this script."
+        err "The spatial_${INTENSITY}.wav file is missing from the installation directory."
+        echo ""
+        info "Either:"
+        echo "  1. Run generate_ir.py to create the file"
+        echo "  2. Download the pre-built IR files from the repository"
         exit 1
     fi
+else
+    ok "Found impulse response: spatial_${INTENSITY}.wav"
 fi
 
 # ── Create directories & copy IR ────────────────────────────────────────────
+echo ""
+header "Installing Configuration"
+echo ""
+
+step "Creating PipeWire configuration directories..."
 mkdir -p "$PIPEWIRE_DIR" "$PIPEWIRE_CONF_DIR"
+ok "Directories ready"
+
+step "Copying impulse response to $HOME/.config/pipewire/..."
 cp "$IR_SRC" "$IR_DEST"
-ok "Copied IR (${INTENSITY}) → $IR_DEST"
+ok "Impulse response installed"
 
 # ── Generate PipeWire config ────────────────────────────────────────────────
+step "Generating PipeWire filter chain configuration..."
+
 # Filter graph:
 #   Input L ──→ convLL (direct) ──→ mixL ──→ Output L
 #   Input R ──→ convRL (cross)  ──↗
@@ -313,11 +534,16 @@ context.modules = [
 ]
 CONFEOF
 
-ok "Wrote config → $CONF_FILE"
+ok "Configuration written to:"
+echo "   ${DIM}$CONF_FILE${NC}"
 
 # ── Optional: Fuzzy audio after suspend fix ─────────────────────────────────
-if $INSTALL_SUSPEND_FIX; then
-    info "Installing suspend audio fix (requires sudo)..."
+if [[ "$INSTALL_SUSPEND_FIX" == "true" ]]; then
+    echo ""
+    header "Installing Suspend/Resume Audio Fix"
+    echo ""
+    
+    step "Creating fix script in $HOME/.local/bin/..."
 
     SUSPEND_SCRIPT="$HOME/.local/bin/pipewire-fix-audio-after-suspend.sh"
     mkdir -p "$HOME/.local/bin"
@@ -333,10 +559,12 @@ pw-metadata -n settings 0 clock.force-quantum "$temp_quantum"
 pw-metadata -n settings 0 clock.force-quantum "$old_quantum"
 FIXSCRIPT
     chmod +x "$SUSPEND_SCRIPT"
+    ok "Fix script created"
 
     CURRENT_USER="$(whoami)"
     CURRENT_UID="$(id -u)"
 
+    step "Installing systemd service (requires sudo)..."
     sudo tee /etc/systemd/system/pipewire-fix-audio-after-suspend.service > /dev/null << SVCEOF
 [Unit]
 Description=Fix distorted PipeWire audio after suspend/resume
@@ -352,24 +580,61 @@ ExecStart=/bin/bash $SUSPEND_SCRIPT
 WantedBy=suspend.target hibernate.target hybrid-sleep.target suspend-then-hibernate.target
 SVCEOF
 
+    step "Enabling systemd service..."
     sudo systemctl daemon-reload
     sudo systemctl enable --now pipewire-fix-audio-after-suspend.service
-    ok "Suspend fix installed and enabled."
+    ok "Suspend fix installed and activated"
 fi
 
 # ── Restart PipeWire ────────────────────────────────────────────────────────
-info "Restarting PipeWire..."
-systemctl --user restart wireplumber pipewire pipewire-pulse 2>/dev/null || {
-    warn "Auto-restart failed. Restart PipeWire manually or reboot."
-}
+echo ""
+header "Activating Enhanced Audio"
+echo ""
 
+step "Restarting PipeWire services..."
+if systemctl --user restart wireplumber pipewire pipewire-pulse 2>/dev/null; then
+    ok "PipeWire restarted successfully"
+else
+    warn "Auto-restart failed. Please restart PipeWire manually or reboot."
+fi
+
+# ── Success message ─────────────────────────────────────────────────────────
 echo ""
-ok "Installation complete! (intensity: ${INTENSITY})"
+echo -e "${GREEN}${BOLD}╔═══════════════════════════════════════════════════════════════════╗${NC}"
+echo -e "${GREEN}${BOLD}║                                                                   ║${NC}"
+echo -e "${GREEN}${BOLD}║              🎉  Installation Complete!  🎉                       ║${NC}"
+echo -e "${GREEN}${BOLD}║                                                                   ║${NC}"
+echo -e "${GREEN}${BOLD}╚═══════════════════════════════════════════════════════════════════╝${NC}"
 echo ""
-info "A new output device '${DISPLAY_NAME}' should now appear in sound settings."
+echo -e "${BOLD}📊 Configuration Summary:${NC}"
+echo "   • Intensity:      ${BOLD}${INTENSITY}${NC}"
+echo "   • Virtual device: ${BOLD}${DISPLAY_NAME}${NC}"
+echo "   • Target sink:    ${DIM}${SINK_NAME}${NC}"
+if [[ "$INSTALL_SUSPEND_FIX" == "true" ]]; then
+    echo "   • Suspend fix:    ${GREEN}Enabled${NC}"
+fi
 echo ""
-warn "TIP: Max out your hardware speaker volume first, then control"
-warn "     loudness from the '${DISPLAY_NAME}' virtual sink slider."
+echo -e "${BOLD}🎯 Next Steps:${NC}"
 echo ""
-info "To change intensity: $0 --intensity light|medium|heavy"
-info "To uninstall:        $0 --uninstall"
+echo "   ${CYAN}1.${NC} Open your system sound settings"
+echo "   ${CYAN}2.${NC} Look for the '${BOLD}${DISPLAY_NAME}${NC}' output device"
+echo "   ${CYAN}3.${NC} Set it as your default audio output"
+echo "   ${CYAN}4.${NC} ${BOLD}Important:${NC} Max out your hardware speaker volume"
+echo "   ${CYAN}5.${NC} Control loudness using the '${DISPLAY_NAME}' slider"
+echo ""
+echo -e "${YELLOW}⚠${NC}  ${BOLD}Volume Control Tip:${NC}"
+echo "   ${DIM}For best results, set your physical speaker volume to 100%,${NC}"
+echo "   ${DIM}then use the virtual device's slider for volume control.${NC}"
+echo "   ${DIM}This prevents double-attenuation and maintains audio quality.${NC}"
+echo ""
+echo -e "${BOLD}🔧 Configuration Files:${NC}"
+echo "   ${DIM}Config: $CONF_FILE${NC}"
+echo "   ${DIM}IR File: $IR_DEST${NC}"
+echo ""
+echo -e "${BOLD}💡 Useful Commands:${NC}"
+echo "   Change intensity:  ${CYAN}./install.sh --intensity <light|medium|heavy>${NC}"
+echo "   Uninstall:         ${CYAN}./install.sh --uninstall${NC}"
+echo "   View help:         ${CYAN}./install.sh --help${NC}"
+echo ""
+echo -e "${DIM}Enjoy your enhanced audio! 🎵${NC}"
+echo ""
