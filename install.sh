@@ -376,6 +376,7 @@ detect_default_sink() {
         return 0
     fi
 
+    # Display menu normally (not captured)
     echo ""
     header "Multiple Audio Devices Detected"
     echo ""
@@ -428,8 +429,10 @@ if [[ -z "$SINK_NAME" ]]; then
     echo ""
     step "Scanning for available audio sinks..."
     
-    SINK_NAME=$(detect_default_sink) || true
-
+    # Don't capture the function output during interactive selection
+    # The function will display the menu and only return the final selection
+    SINK_NAME=$(detect_default_sink)
+    
     if [[ -z "$SINK_NAME" ]]; then
         err "Could not detect any ALSA output sinks."
         echo ""
