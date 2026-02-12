@@ -68,44 +68,48 @@ ${BOLD}WHAT THIS DOES:${NC}
   immersive using advanced convolution and crossfeed techniques.
 
 ${BOLD}COMMAND LINE OPTIONS:${NC}
-  ${CYAN}--intensity${NC} <light|medium|heavy>
-      ${DIM}Adjust the strength of the spatial effect:${NC}
-      • ${GREEN}light${NC}  - Subtle enhancement, natural sound (recommended for movies/music)
-      • ${YELLOW}medium${NC} - Balanced spatial widening (great all-rounder)
-      • ${RED}heavy${NC}  - Maximum spatial effect (best for gaming)
-
-  ${CYAN}--sink${NC} <node.name>
-      ${DIM}Manually specify which audio device to enhance${NC}
-      Example: --sink alsa_output.pci-0000_00_1f.3.analog-stereo
-      ${DIM}(Auto-detected if not specified)${NC}
-
-  ${CYAN}--name${NC} "Custom Name"
-      ${DIM}Set a custom display name for the virtual audio device${NC}
-      Default: "Enhanced Audio"
-
-  ${CYAN}--suspend-fix${NC}
-      ${DIM}Install a systemd service to fix audio distortion after suspend/resume${NC}
-      ${DIM}(Some handhelds experience crackling audio after sleep)${NC}
-
-  ${CYAN}--uninstall${NC}
-      ${DIM}Remove all configurations and restore original audio setup${NC}
-
-  ${CYAN}-h, --help${NC}
-      ${DIM}Show this help message${NC}
-
+EOF
+    echo -e "  ${CYAN}--intensity${NC} <light|medium|heavy>"
+    echo -e "      ${DIM}Adjust the strength of the spatial effect:${NC}"
+    echo -e "      ${DIM}•${NC} ${GREEN}light${NC}  - Subtle enhancement, natural sound ${DIM}(recommended for movies/music)${NC}"
+    echo -e "      ${DIM}•${NC} ${YELLOW}medium${NC} - Balanced spatial widening ${DIM}(great all-rounder)${NC}"
+    echo -e "      ${DIM}•${NC} ${RED}heavy${NC}  - Maximum spatial effect ${DIM}(best for gaming)${NC}"
+    echo ""
+    echo -e "  ${CYAN}--sink${NC} <node.name>"
+    echo -e "      ${DIM}Manually specify which audio device to enhance${NC}"
+    echo -e "      ${DIM}Example: --sink alsa_output.pci-0000_00_1f.3.analog-stereo${NC}"
+    echo -e "      ${DIM}(Auto-detected if not specified)${NC}"
+    echo ""
+    echo -e "  ${CYAN}--name${NC} \"Custom Name\""
+    echo -e "      ${DIM}Set a custom display name for the virtual audio device${NC}"
+    echo -e "      ${DIM}Default: \"Enhanced Audio\"${NC}"
+    echo ""
+    echo -e "  ${CYAN}--suspend-fix${NC}"
+    echo -e "      ${DIM}Install a systemd service to fix audio distortion after suspend/resume${NC}"
+    echo -e "      ${DIM}(Some handhelds experience crackling audio after sleep)${NC}"
+    echo ""
+    echo -e "  ${CYAN}--uninstall${NC}"
+    echo -e "      ${DIM}Remove all configurations and restore original audio setup${NC}"
+    echo ""
+    echo -e "  ${CYAN}-h, --help${NC}"
+    echo -e "      ${DIM}Show this help message${NC}"
+    echo ""
+    cat << EOF
 ${BOLD}EXAMPLES:${NC}
-  ${DIM}# Interactive mode (recommended for first-time users):${NC}
-  ./install.sh
-
-  ${DIM}# Quick install with light spatial effect:${NC}
-  ./install.sh --intensity light
-
-  ${DIM}# Install with suspend fix for devices with post-sleep audio issues:${NC}
-  ./install.sh --intensity medium --suspend-fix
-
-  ${DIM}# Completely remove the enhancement:${NC}
-  ./install.sh --uninstall
-
+EOF
+    echo -e "  ${DIM}# Interactive mode (recommended for first-time users):${NC}"
+    echo "  ./install.sh"
+    echo ""
+    echo -e "  ${DIM}# Quick install with light spatial effect:${NC}"
+    echo "  ./install.sh --intensity light"
+    echo ""
+    echo -e "  ${DIM}# Install with suspend fix for devices with post-sleep audio issues:${NC}"
+    echo "  ./install.sh --intensity medium --suspend-fix"
+    echo ""
+    echo -e "  ${DIM}# Completely remove the enhancement:${NC}"
+    echo "  ./install.sh --uninstall"
+    echo ""
+    cat << EOF
 ${BOLD}AFTER INSTALLATION:${NC}
   1. A new audio device will appear in your sound settings
   2. Set it as your default output device
@@ -199,9 +203,9 @@ if $MISSING_DEPS; then
     err "Required PipeWire tools are missing!"
     echo ""
     info "Please install PipeWire and its utilities:"
-    echo "  ${DIM}Arch/CachyOS:    ${NC}sudo pacman -S pipewire pipewire-pulse wireplumber"
-    echo "  ${DIM}Fedora:          ${NC}sudo dnf install pipewire pipewire-pulseaudio wireplumber"
-    echo "  ${DIM}Ubuntu/Debian:   ${NC}sudo apt install pipewire pipewire-pulse wireplumber"
+    echo -e "  ${DIM}Arch/CachyOS:    ${NC}sudo pacman -S pipewire pipewire-pulse wireplumber"
+    echo -e "  ${DIM}Fedora:          ${NC}sudo dnf install pipewire pipewire-pulseaudio wireplumber"
+    echo -e "  ${DIM}Ubuntu/Debian:   ${NC}sudo apt install pipewire pipewire-pulse wireplumber"
     echo ""
     exit 1
 fi
@@ -216,23 +220,23 @@ if $INTERACTIVE_MODE; then
     if [[ -z "$INTENSITY" ]]; then
         header "Select Spatial Enhancement Intensity"
         echo ""
-        echo "  Choose how strong you want the spatial effect:"
+        echo "Choose how strong you want the spatial effect:"
         echo ""
-        echo "  ${GREEN}1)${NC} ${BOLD}Light${NC}    - Subtle enhancement, keeps natural sound"
-        echo "               ${DIM}Best for: Movies, music, podcasts${NC}"
-        echo "               ${DIM}Effect: Gentle widening, minimal coloration${NC}"
+        echo -e "  ${GREEN}1)${NC} ${BOLD}Light${NC}    - Subtle enhancement, keeps natural sound"
+        echo -e "               ${DIM}Best for:${NC} Movies, music, podcasts"
+        echo -e "               ${DIM}Effect:${NC} Gentle widening, minimal coloration"
         echo ""
-        echo "  ${YELLOW}2)${NC} ${BOLD}Medium${NC}   - Balanced spatial widening (recommended)"
-        echo "               ${DIM}Best for: General use, most games${NC}"
-        echo "               ${DIM}Effect: Noticeable depth without being unnatural${NC}"
+        echo -e "  ${YELLOW}2)${NC} ${BOLD}Medium${NC}   - Balanced spatial widening ${DIM}(recommended)${NC}"
+        echo -e "               ${DIM}Best for:${NC} General use, most games"
+        echo -e "               ${DIM}Effect:${NC} Noticeable depth without being unnatural"
         echo ""
-        echo "  ${RED}3)${NC} ${BOLD}Heavy${NC}    - Maximum spatial effect"
-        echo "               ${DIM}Best for: Competitive gaming, action games${NC}"
-        echo "               ${DIM}Effect: Strong surround-like processing${NC}"
+        echo -e "  ${RED}3)${NC} ${BOLD}Heavy${NC}    - Maximum spatial effect"
+        echo -e "               ${DIM}Best for:${NC} Competitive gaming, action games"
+        echo -e "               ${DIM}Effect:${NC} Strong surround-like processing"
         echo ""
         
         while true; do
-            read -rp "$(echo -e ${CYAN}Select option [1-3]:${NC} )" choice
+            read -rp "$(echo -e ${CYAN}"Select option [1-3]: "${NC})" choice
             case "$choice" in
                 1) INTENSITY="light"; break ;;
                 2) INTENSITY="medium"; break ;;
@@ -241,6 +245,7 @@ if $INTERACTIVE_MODE; then
             esac
         done
         
+        echo ""
         ok "Selected: ${BOLD}${INTENSITY}${NC} intensity"
         sleep 1
     fi
@@ -250,15 +255,15 @@ if $INTERACTIVE_MODE; then
         echo ""
         header "Suspend/Resume Audio Fix"
         echo ""
-        echo "  Some handhelds experience crackling or distorted audio after"
-        echo "  waking from sleep/suspend. This installs a systemd service that"
-        echo "  automatically fixes PipeWire audio after resume."
+        echo "Some handhelds experience crackling or distorted audio after"
+        echo "waking from sleep/suspend. This installs a systemd service that"
+        echo "automatically fixes PipeWire audio after resume."
         echo ""
-        echo "  ${DIM}This requires sudo privileges to install the system service.${NC}"
+        echo -e "${DIM}This requires sudo privileges to install the system service.${NC}"
         echo ""
         
         while true; do
-            read -rp "$(echo -e ${CYAN}Install suspend fix? [y/N]:${NC} )" choice
+            read -rp "$(echo -e ${CYAN}"Install suspend fix? [y/N]: "${NC})" choice
             case "$choice" in
                 [Yy]* ) INSTALL_SUSPEND_FIX=true; break ;;
                 [Nn]* | "" ) INSTALL_SUSPEND_FIX=false; break ;;
@@ -266,6 +271,7 @@ if $INTERACTIVE_MODE; then
             esac
         done
         
+        echo ""
         if $INSTALL_SUSPEND_FIX; then
             ok "Will install suspend fix"
         else
@@ -285,6 +291,63 @@ case "$INTENSITY" in
 esac
 
 # ── Auto-detect default ALSA output sink ────────────────────────────────────
+
+# Helper function to describe what a sink is
+describe_sink() {
+    local sink="$1"
+    local desc=""
+    local friendly_name=""
+    
+    # Try to get the actual device description from pactl first
+    friendly_name=$(pactl list sinks 2>/dev/null | grep -A 20 "Name: $sink" | grep "Description:" | sed 's/.*Description: //' | head -1)
+    
+    # Extract key parts of the sink name for identification
+    if [[ "$sink" =~ analog-stereo ]]; then
+        if [[ -n "$friendly_name" ]]; then
+            desc="${GREEN}${BOLD}$friendly_name${NC}"
+        else
+            desc="${GREEN}${BOLD}Built-in Speakers/Headphones${NC}"
+        fi
+        desc="$desc ${DIM}(analog stereo output)${NC}"
+    elif [[ "$sink" =~ hdmi ]]; then
+        if [[ -n "$friendly_name" ]]; then
+            desc="${BLUE}${BOLD}$friendly_name${NC}"
+        else
+            desc="${BLUE}${BOLD}HDMI Audio Output${NC}"
+        fi
+        desc="$desc ${DIM}(external display)${NC}"
+    elif [[ "$sink" =~ usb ]]; then
+        if [[ -n "$friendly_name" ]]; then
+            desc="${MAGENTA}${BOLD}$friendly_name${NC}"
+        else
+            desc="${MAGENTA}${BOLD}USB Audio Device${NC}"
+        fi
+        desc="$desc ${DIM}(external)${NC}"
+    elif [[ "$sink" =~ bluetooth ]]; then
+        if [[ -n "$friendly_name" ]]; then
+            desc="${CYAN}${BOLD}$friendly_name${NC}"
+        else
+            desc="${CYAN}${BOLD}Bluetooth Audio${NC}"
+        fi
+        desc="$desc ${DIM}(wireless)${NC}"
+    elif [[ "$sink" =~ digital ]]; then
+        if [[ -n "$friendly_name" ]]; then
+            desc="${YELLOW}${BOLD}$friendly_name${NC}"
+        else
+            desc="${YELLOW}${BOLD}Digital Output${NC}"
+        fi
+        desc="$desc ${DIM}(S/PDIF or similar)${NC}"
+    else
+        if [[ -n "$friendly_name" ]]; then
+            desc="${BOLD}$friendly_name${NC}"
+        else
+            desc="${DIM}Audio Output Device${NC}"
+        fi
+    fi
+    
+    echo -e "$desc"
+}
+
 detect_default_sink() {
     local sinks
     sinks=$(pw-cli list-objects Node 2>/dev/null \
@@ -310,22 +373,46 @@ detect_default_sink() {
     echo ""
     header "Multiple Audio Devices Detected"
     echo ""
-    info "Please select which device to enhance:"
+    info "Your system has multiple audio output devices available."
     echo ""
+    echo -e "${BOLD}Available Devices:${NC}"
+    echo ""
+    
     local i=1
+    declare -a sink_array
     while IFS= read -r sink; do
-        echo "  ${CYAN}$i)${NC} $sink"
+        sink_array[$i]="$sink"
+        local desc=$(describe_sink "$sink")
+        echo -e "  ${CYAN}${BOLD}$i)${NC} $desc"
+        echo -e "     ${DIM}Technical ID: $sink${NC}"
+        echo ""
         i=$((i + 1))
     done <<< "$sinks"
+    
+    echo -e "${YELLOW}💡${NC} ${BOLD}Which device should you choose?${NC}"
+    echo ""
+    echo -e "   ${DIM}For handhelds (Steam Deck, ROG Ally, Legion Go, etc.):${NC}"
+    echo -e "   ${GREEN}→${NC} Choose the ${GREEN}Built-in Speakers${NC} option (usually #1)"
+    echo ""
+    echo -e "   ${DIM}For laptops:${NC}"
+    echo -e "   ${GREEN}→${NC} Choose the ${GREEN}analog-stereo${NC} device (internal speakers)"
+    echo ""
+    echo -e "   ${DIM}For external displays with sound:${NC}"
+    echo -e "   ${BLUE}→${NC} Choose the ${BLUE}HDMI${NC} output if you want spatial audio there"
+    echo ""
+    echo -e "   ${DIM}Note: USB/Bluetooth devices are not recommended for this enhancement${NC}"
     echo ""
 
     while true; do
-        read -rp "$(echo -e ${CYAN}Select device [1-$count]:${NC} )" choice
+        read -rp "$(echo -e ${CYAN}"Select device [1-$count]: "${NC})" choice
         if [[ "$choice" =~ ^[0-9]+$ ]] && (( choice >= 1 && choice <= count )); then
-            echo "$sinks" | sed -n "${choice}p"
+            local selected_sink="${sink_array[$choice]}"
+            echo ""
+            ok "Selected: $(describe_sink "$selected_sink")"
+            echo "$selected_sink"
             return 0
         fi
-        warn "Invalid choice, please try again."
+        warn "Invalid choice. Please enter a number between 1 and $count."
     done
 }
 
@@ -341,15 +428,20 @@ if [[ -z "$SINK_NAME" ]]; then
         err "Could not detect any ALSA output sinks."
         echo ""
         info "To manually specify a sink, run:"
-        echo "  ${DIM}pw-cli list-objects Node | grep 'node.name.*alsa_output'${NC}"
+        echo -e "  ${DIM}pw-cli list-objects Node | grep 'node.name.*alsa_output'${NC}"
         echo ""
-        echo "Then re-run with: ${CYAN}./install.sh --sink <node.name>${NC}"
+        echo -e "Then re-run with: ${CYAN}./install.sh --sink <node.name>${NC}"
         exit 1
     fi
     
-    echo ""
-    ok "Using sink: ${BOLD}$SINK_NAME${NC}"
-    sleep 1
+    # Only show this if we auto-detected a single device (not if user selected from menu)
+    if [[ "$(pactl list sinks short 2>/dev/null | grep '^alsa_output' | wc -l)" -eq 1 ]] || \
+       [[ "$(pw-cli list-objects Node 2>/dev/null | grep -oP 'node\.name = "\Kalsa_output[^"]+' | wc -l)" -eq 1 ]]; then
+        echo ""
+        ok "Auto-detected: $(describe_sink "$SINK_NAME")"
+        echo -e "   ${DIM}Device: $SINK_NAME${NC}"
+        sleep 1
+    fi
 fi
 
 # ── Resolve IR file ─────────────────────────────────────────────────────────
@@ -535,7 +627,7 @@ context.modules = [
 CONFEOF
 
 ok "Configuration written to:"
-echo "   ${DIM}$CONF_FILE${NC}"
+echo -e "   ${DIM}$CONF_FILE${NC}"
 
 # ── Optional: Fuzzy audio after suspend fix ─────────────────────────────────
 if [[ "$INSTALL_SUSPEND_FIX" == "true" ]]; then
@@ -607,34 +699,34 @@ echo -e "${GREEN}${BOLD}║                                                     
 echo -e "${GREEN}${BOLD}╚═══════════════════════════════════════════════════════════════════╝${NC}"
 echo ""
 echo -e "${BOLD}📊 Configuration Summary:${NC}"
-echo "   • Intensity:      ${BOLD}${INTENSITY}${NC}"
-echo "   • Virtual device: ${BOLD}${DISPLAY_NAME}${NC}"
-echo "   • Target sink:    ${DIM}${SINK_NAME}${NC}"
+echo -e "   ${DIM}•${NC} Intensity:      ${BOLD}${INTENSITY}${NC}"
+echo -e "   ${DIM}•${NC} Virtual device: ${BOLD}${DISPLAY_NAME}${NC}"
+echo -e "   ${DIM}•${NC} Target sink:    ${DIM}${SINK_NAME}${NC}"
 if [[ "$INSTALL_SUSPEND_FIX" == "true" ]]; then
-    echo "   • Suspend fix:    ${GREEN}Enabled${NC}"
+    echo -e "   ${DIM}•${NC} Suspend fix:    ${GREEN}Enabled${NC}"
 fi
 echo ""
 echo -e "${BOLD}🎯 Next Steps:${NC}"
 echo ""
-echo "   ${CYAN}1.${NC} Open your system sound settings"
-echo "   ${CYAN}2.${NC} Look for the '${BOLD}${DISPLAY_NAME}${NC}' output device"
-echo "   ${CYAN}3.${NC} Set it as your default audio output"
-echo "   ${CYAN}4.${NC} ${BOLD}Important:${NC} Max out your hardware speaker volume"
-echo "   ${CYAN}5.${NC} Control loudness using the '${DISPLAY_NAME}' slider"
+echo -e "   ${CYAN}1.${NC} Open your system sound settings"
+echo -e "   ${CYAN}2.${NC} Look for the ${BOLD}'${DISPLAY_NAME}'${NC} output device"
+echo -e "   ${CYAN}3.${NC} Set it as your default audio output"
+echo -e "   ${CYAN}4.${NC} ${BOLD}Important:${NC} Max out your hardware speaker volume"
+echo -e "   ${CYAN}5.${NC} Control loudness using the ${BOLD}'${DISPLAY_NAME}'${NC} slider"
 echo ""
 echo -e "${YELLOW}⚠${NC}  ${BOLD}Volume Control Tip:${NC}"
-echo "   ${DIM}For best results, set your physical speaker volume to 100%,${NC}"
-echo "   ${DIM}then use the virtual device's slider for volume control.${NC}"
-echo "   ${DIM}This prevents double-attenuation and maintains audio quality.${NC}"
+echo -e "   ${DIM}For best results, set your physical speaker volume to 100%,${NC}"
+echo -e "   ${DIM}then use the virtual device's slider for volume control.${NC}"
+echo -e "   ${DIM}This prevents double-attenuation and maintains audio quality.${NC}"
 echo ""
 echo -e "${BOLD}🔧 Configuration Files:${NC}"
-echo "   ${DIM}Config: $CONF_FILE${NC}"
-echo "   ${DIM}IR File: $IR_DEST${NC}"
+echo -e "   ${DIM}Config: $CONF_FILE${NC}"
+echo -e "   ${DIM}IR File: $IR_DEST${NC}"
 echo ""
 echo -e "${BOLD}💡 Useful Commands:${NC}"
-echo "   Change intensity:  ${CYAN}./install.sh --intensity <light|medium|heavy>${NC}"
-echo "   Uninstall:         ${CYAN}./install.sh --uninstall${NC}"
-echo "   View help:         ${CYAN}./install.sh --help${NC}"
+echo -e "   ${DIM}Change intensity:${NC}  ${CYAN}./install.sh --intensity <light|medium|heavy>${NC}"
+echo -e "   ${DIM}Uninstall:${NC}         ${CYAN}./install.sh --uninstall${NC}"
+echo -e "   ${DIM}View help:${NC}         ${CYAN}./install.sh --help${NC}"
 echo ""
 echo -e "${DIM}Enjoy your enhanced audio! 🎵${NC}"
 echo ""
