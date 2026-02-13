@@ -18,20 +18,18 @@
 
 set -euo pipefail
 
-# ── Defaults ────────────────────────────────────────────────────────────────
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PIPEWIRE_DIR="$HOME/.config/pipewire"
 PIPEWIRE_CONF_DIR="$PIPEWIRE_DIR/pipewire.conf.d"
-CONF_FILE="$PIPEWIRE_CONF_DIR/handheld-audio-enhance.conf"
-IR_DEST="$PIPEWIRE_DIR/handheld-audio-enhance-ir.wav"
+CONF_FILE="$PIPEWIRE_CONF_DIR/spatial-audio.conf"
+IR_DEST="$PIPEWIRE_DIR/spatial-audio-ir.wav"
 SINK_NAME=""
 INTENSITY=""
-DISPLAY_NAME="Enhanced Audio"
+DISPLAY_NAME="Spatial Audio"
 INSTALL_SUSPEND_FIX=""
 UNINSTALL=false
 INTERACTIVE_MODE=true
 
-# ── Colour helpers ──────────────────────────────────────────────────────────
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; CYAN='\033[0;36m'
 BLUE='\033[0;34m'; MAGENTA='\033[0;35m'; BOLD='\033[1m'; DIM='\033[2m'; NC='\033[0m'
 
@@ -42,7 +40,6 @@ err()     { echo -e "${RED}✗${NC} $*" >&2; }
 header()  { echo -e "\n${BOLD}${BLUE}▌ $*${NC}"; }
 step()    { echo -e "${MAGENTA}→${NC} ${DIM}$*${NC}"; }
 
-# ── Banner ──────────────────────────────────────────────────────────────────
 show_banner() {
     clear
     echo -e "${BOLD}${CYAN}"
@@ -58,7 +55,6 @@ BANNER
     echo -e "${NC}"
 }
 
-# ── Help menu ───────────────────────────────────────────────────────────────
 show_help() {
     show_banner
     cat << EOF
@@ -82,7 +78,7 @@ EOF
     echo ""
     echo -e "  ${CYAN}--name${NC} \"Custom Name\""
     echo -e "      ${DIM}Set a custom display name for the virtual audio device${NC}"
-    echo -e "      ${DIM}Default: \"Enhanced Audio\"${NC}"
+    echo -e "      ${DIM}Default: \"Spatial Audio\"${NC}"
     echo ""
     echo -e "  ${CYAN}--suspend-fix${NC}"
     echo -e "      ${DIM}Install a systemd service to fix audio distortion after suspend/resume${NC}"
@@ -122,7 +118,6 @@ ${BOLD}MORE INFO:${NC}
 EOF
 }
 
-# ── Argument parsing ────────────────────────────────────────────────────────
 while [[ $# -gt 0 ]]; do
     INTERACTIVE_MODE=false
     case "$1" in
@@ -136,19 +131,16 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# ── Must not be root ────────────────────────────────────────────────────────
 if [[ "$EUID" -eq 0 ]]; then
     err "Do not run as root. PipeWire configs belong to your user."
     exit 1
 fi
 
-# ── Uninstall path ──────────────────────────────────────────────────────────
 if $UNINSTALL; then
     show_banner
     header "Uninstallation"
     echo ""
-    
-    info "Removing Enhanced Handheld Audio..."
+    info "Removing Spatial Audio..."
     echo ""
 
     if [[ -f "$CONF_FILE" ]]; then
@@ -174,7 +166,6 @@ if $UNINSTALL; then
     echo ""
     info "Restarting PipeWire services..."
     systemctl --user restart wireplumber pipewire pipewire-pulse 2>/dev/null || true
-    
     echo ""
     ok "${GREEN}${BOLD}Uninstallation complete!${NC}"
     echo ""
@@ -183,7 +174,6 @@ if $UNINSTALL; then
     exit 0
 fi
 
-# ── Dependency check ────────────────────────────────────────────────────────
 show_banner
 header "Checking System Requirements"
 echo ""
@@ -214,9 +204,7 @@ echo ""
 ok "${GREEN}All dependencies satisfied${NC}"
 sleep 1
 
-# ── Interactive prompts ─────────────────────────────────────────────────────
 if $INTERACTIVE_MODE; then
-    # Intensity selection
     if [[ -z "$INTENSITY" ]]; then
         header "Select Spatial Enhancement Intensity"
         echo ""
@@ -234,7 +222,7 @@ if $INTERACTIVE_MODE; then
         echo -e "               ${DIM}Best for:${NC} Competitive gaming, action games"
         echo -e "               ${DIM}Effect:${NC} Strong surround-like processing"
         echo ""
-        
+
         while true; do
             read -rp "$(echo -e ${CYAN}"Select option [1-3]: "${NC})" choice
             case "$choice" in
@@ -244,13 +232,12 @@ if $INTERACTIVE_MODE; then
                 *) warn "Invalid choice. Please enter 1, 2, or 3." ;;
             esac
         done
-        
+
         echo ""
         ok "Selected: ${BOLD}${INTENSITY}${NC} intensity"
         sleep 1
     fi
-    
-    # Suspend fix option
+
     if [[ -z "$INSTALL_SUSPEND_FIX" ]]; then
         echo ""
         header "Suspend/Resume Audio Fix"
@@ -261,7 +248,7 @@ if $INTERACTIVE_MODE; then
         echo ""
         echo -e "${DIM}This requires sudo privileges to install the system service.${NC}"
         echo ""
-        
+
         while true; do
             read -rp "$(echo -e ${CYAN}"Install suspend fix? [y/N]: "${NC})" choice
             case "$choice" in
@@ -270,7 +257,7 @@ if $INTERACTIVE_MODE; then
                 * ) warn "Please answer y or n." ;;
             esac
         done
-        
+
         echo ""
         if $INSTALL_SUSPEND_FIX; then
             ok "Will install suspend fix"
@@ -281,7 +268,6 @@ if $INTERACTIVE_MODE; then
     fi
 fi
 
-# ── Validate intensity ──────────────────────────────────────────────────────
 case "$INTENSITY" in
     light|medium|heavy) ;;
     *)
@@ -290,18 +276,13 @@ case "$INTENSITY" in
         exit 1 ;;
 esac
 
-# ── Auto-detect default ALSA output sink ────────────────────────────────────
-
-# Helper function to describe what a sink is
 describe_sink() {
     local sink="$1"
     local desc=""
     local friendly_name=""
-    
-    # Try to get the actual device description from pactl first
+
     friendly_name=$(pactl list sinks 2>/dev/null | grep -A 20 "Name: $sink" | grep "Description:" | sed 's/.*Description: //' | head -1)
-    
-    # Extract key parts of the sink name for identification
+
     if [[ "$sink" =~ analog-stereo ]]; then
         if [[ -n "$friendly_name" ]]; then
             desc="${GREEN}${BOLD}$friendly_name${NC}"
@@ -344,21 +325,18 @@ describe_sink() {
             desc="${DIM}Audio Output Device${NC}"
         fi
     fi
-    
+
     echo -e "$desc"
 }
 
 detect_default_sink() {
     local sinks
-    
-    # Try pw-cli first - extract node.name values for alsa_output devices
-    # Use sed to properly parse the quoted string values
+
     sinks=$(pw-cli list-objects Node 2>/dev/null | \
         sed -n 's/.*node\.name = "\(alsa_output[^"]*\)".*/\1/p' | \
         sort -u | \
         head -20)
 
-    # Fallback to pactl if pw-cli didn't find anything
     if [[ -z "$sinks" ]]; then
         sinks=$(pactl list sinks short 2>/dev/null | \
             awk '{print $2}' | \
@@ -371,13 +349,12 @@ detect_default_sink() {
 
     local count
     count=$(echo "$sinks" | wc -l)
-    
+
     if [[ "$count" -eq 1 ]]; then
         SINK_NAME="$sinks"
         return 0
     fi
 
-    # Display menu
     echo ""
     header "Multiple Audio Devices Detected"
     echo ""
@@ -385,7 +362,7 @@ detect_default_sink() {
     echo ""
     echo -e "${BOLD}Available Devices:${NC}"
     echo ""
-    
+
     local i=1
     declare -a sink_array
     while IFS= read -r sink; do
@@ -396,7 +373,7 @@ detect_default_sink() {
         echo ""
         i=$((i + 1))
     done <<< "$sinks"
-    
+
     echo -e "${YELLOW}💡${NC} ${BOLD}Which device should you choose?${NC}"
     echo ""
     echo -e "   ${DIM}For handhelds (Steam Deck, ROG Ally, Legion Go, etc.):${NC}"
@@ -428,10 +405,9 @@ if [[ -z "$SINK_NAME" ]]; then
     header "Detecting Audio Output Device"
     echo ""
     step "Scanning for available audio sinks..."
-    
-    # Call function directly - it sets SINK_NAME internally
+
     detect_default_sink
-    
+
     if [[ -z "$SINK_NAME" ]]; then
         err "Could not detect any ALSA output sinks."
         echo ""
@@ -441,8 +417,7 @@ if [[ -z "$SINK_NAME" ]]; then
         echo -e "Then re-run with: ${CYAN}./install.sh --sink <node.name>${NC}"
         exit 1
     fi
-    
-    # Only show this if we auto-detected a single device (not if user selected from menu)
+
     if [[ "$(pactl list sinks short 2>/dev/null | grep '^alsa_output' | wc -l)" -eq 1 ]] || \
        [[ "$(pw-cli list-objects Node 2>/dev/null | sed -n 's/.*node\.name = "\(alsa_output[^"]*\)".*/\1/p' | wc -l)" -eq 1 ]]; then
         echo ""
@@ -452,7 +427,6 @@ if [[ -z "$SINK_NAME" ]]; then
     fi
 fi
 
-# ── Resolve IR file ─────────────────────────────────────────────────────────
 echo ""
 header "Preparing Impulse Response File"
 echo ""
@@ -460,7 +434,6 @@ echo ""
 IR_SRC="$SCRIPT_DIR/spatial_${INTENSITY}.wav"
 
 if [[ ! -f "$IR_SRC" ]]; then
-    # Try generating it if the generator script is present
     if [[ -f "$SCRIPT_DIR/generate_ir.py" ]] && command -v python3 &>/dev/null; then
         step "IR file not found, generating spatial_${INTENSITY}.wav..."
         python3 "$SCRIPT_DIR/generate_ir.py" --intensity "$INTENSITY" -o "$IR_SRC"
@@ -478,7 +451,6 @@ else
     ok "Found impulse response: spatial_${INTENSITY}.wav"
 fi
 
-# ── Create directories & copy IR ────────────────────────────────────────────
 echo ""
 header "Installing Configuration"
 echo ""
@@ -491,21 +463,11 @@ step "Copying impulse response to $HOME/.config/pipewire/..."
 cp "$IR_SRC" "$IR_DEST"
 ok "Impulse response installed"
 
-# ── Generate PipeWire config ────────────────────────────────────────────────
 step "Generating PipeWire filter chain configuration..."
-
-# Filter graph:
-#   Input L ──→ convLL (direct) ──→ mixL ──→ Output L
-#   Input R ──→ convRL (cross)  ──↗
-#
-#   Input R ──→ convRR (direct) ──→ mixR ──→ Output R
-#   Input L ──→ convLR (cross)  ──↗
-#
-# 4 convolvers + 2 mixers = proper stereo crossfeed spatial processing
 
 cat > "$CONF_FILE" << CONFEOF
 # ============================================================================
-# Handheld Audio Enhance — PipeWire Spatial Convolver
+# Spatial Audio — PipeWire Spatial Convolver
 # Generated $(date -Iseconds)
 # Intensity:   $INTENSITY
 # Target sink: $SINK_NAME
@@ -529,7 +491,7 @@ context.modules = [
             media.name       = "$DISPLAY_NAME"
             filter.graph = {
                 nodes = [
-                    # ── Input splitters (fan out each channel) ──────
+                    # ── Input splitters ─────────────────────────────
                     {
                         type  = builtin
                         label = copy
@@ -614,7 +576,7 @@ context.modules = [
                 outputs = [ "mixL:Out" "mixR:Out" ]
             }
             capture.props = {
-                node.name      = "handheld_audio_enhance"
+                node.name      = "spatial_audio"
                 media.class    = "Audio/Sink"
                 priority.driver = 1000
                 priority.session = 1000
@@ -622,7 +584,7 @@ context.modules = [
                 audio.position = [ FL FR ]
             }
             playback.props = {
-                node.name      = "handheld_audio_enhance.output"
+                node.name      = "spatial_audio.output"
                 node.passive   = true
                 audio.channels = 2
                 audio.position = [ FL FR ]
@@ -637,17 +599,15 @@ CONFEOF
 ok "Configuration written to:"
 echo -e "   ${DIM}$CONF_FILE${NC}"
 
-# ── Optional: Fuzzy audio after suspend fix ─────────────────────────────────
 if [[ "$INSTALL_SUSPEND_FIX" == "true" ]]; then
     echo ""
     header "Installing Suspend/Resume Audio Fix"
     echo ""
-    
-    step "Creating fix script in $HOME/.local/bin/..."
 
     SUSPEND_SCRIPT="$HOME/.local/bin/pipewire-fix-audio-after-suspend.sh"
     mkdir -p "$HOME/.local/bin"
 
+    step "Creating fix script in $HOME/.local/bin/..."
     cat > "$SUSPEND_SCRIPT" << 'FIXSCRIPT'
 #!/usr/bin/env bash
 set -o errexit
@@ -686,9 +646,8 @@ SVCEOF
     ok "Suspend fix installed and activated"
 fi
 
-# ── Restart PipeWire ────────────────────────────────────────────────────────
 echo ""
-header "Activating Enhanced Audio"
+header "Activating Spatial Audio"
 echo ""
 
 step "Restarting PipeWire services..."
@@ -698,7 +657,6 @@ else
     warn "Auto-restart failed. Please restart PipeWire manually or reboot."
 fi
 
-# ── Success message ─────────────────────────────────────────────────────────
 echo ""
 echo -e "${GREEN}${BOLD}╔═══════════════════════════════════════════════════════════════════╗${NC}"
 echo -e "${GREEN}${BOLD}║                                                                   ║${NC}"
@@ -736,5 +694,5 @@ echo -e "   ${DIM}Change intensity:${NC}  ${CYAN}./install.sh --intensity <light
 echo -e "   ${DIM}Uninstall:${NC}         ${CYAN}./install.sh --uninstall${NC}"
 echo -e "   ${DIM}View help:${NC}         ${CYAN}./install.sh --help${NC}"
 echo ""
-echo -e "${DIM}Enjoy your enhanced audio! 🎵${NC}"
+echo -e "${DIM}Enjoy your spatial audio! 🎵${NC}"
 echo ""
