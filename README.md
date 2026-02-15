@@ -22,13 +22,13 @@ The virtual sink stacks on top of the hardware sink, giving you a separate volum
 sh -c 'tmp=$(mktemp -d) && curl -fsSL https://github.com/MurderFromMars/Enhanced-Handheld-Audio/archive/main.tar.gz | tar -xz -C "$tmp" --strip-components=1 && chmod +x "$tmp/install.sh" && "$tmp/install.sh" && rm -rf "$tmp"'
 ```
 Or clone and run manually:
-
+```
 bash
 git clone https://github.com/MurderFromMars/Enhanced-Handheld-Audio.git
 cd Enhanced-Handheld-Audio
 chmod +x install.sh
 ./install.sh
-
+```
 Intensity Levels
 
 Three spatial intensity options are available:
