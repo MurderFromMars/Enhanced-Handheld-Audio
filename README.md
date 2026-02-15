@@ -1,8 +1,8 @@
-Enhanced Handheld Audio
+# Enhanced Handheld Audio
 
 A PipeWire spatial audio convolver for Linux handhelds. (Works great on laptops too!) Creates a virtual audio sink that simulates surround sound through built in speakers on any device — Steam Deck, ROG Ally, Legion Go, GPD, AYANEO, or anything running PipeWire.
 
-What It Does
+# What It Does
 
 Sets up a PipeWire filter chain with a 4 way convolver that processes stereo audio through:
 
@@ -11,16 +11,16 @@ Sets up a PipeWire filter chain with a 4 way convolver that processes stereo aud
 
 The virtual sink stacks on top of the hardware sink, giving you a separate volume slider so you can max out your hardware speakers and control loudness from the "Spatial Audio" slider.
 
-Requirements
+ #Requirements
 
 - PipeWire with pw cli, pw metadata, pactl
 - WirePlumber
 - Python 3 (only needed if regenerating IR files — prebuilt WAVs are included)
 
-Quick Install
-
+ ## Quick Install
+```
 sh -c 'tmp=$(mktemp -d) && curl -fsSL https://github.com/MurderFromMars/Enhanced-Handheld-Audio/archive/main.tar.gz | tar -xz -C "$tmp" --strip-components=1 && chmod +x "$tmp/install.sh" && "$tmp/install.sh" && rm -rf "$tmp"'
-
+```
 Or clone and run manually:
 
 bash
