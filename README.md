@@ -103,4 +103,4 @@ Acknowledgments
 
 This project was inspired by the audio work in legion go tricks by @aarron lee, which aggregates community fixes for the Lenovo Legion Go. The original speaker correction convolver was developed by @matte schwartz in device quirks, with an improved impulse response contributed by @adolfotregosa and configuration fixes from @KyleGospo.
 
-Their work demonstrated the effectiveness of PipeWire's convolver filter chain for improving handheld audio and directly motivated this project's approach. Enhanced Handheld Audio takes a different direction — synthetic spatial processing rather than device specific speaker correction — but the idea of using a virtual convolver sink for handheld speakers originated with their efforts.
+Their work demonstrated the effectiveness of PipeWire's convolver filter chain for improving handheld audio and directly motivated this project's approach. Enhanced Handheld Audio takes a different direction, synthetic spatial processing rather than device specific speaker correction but the idea of using a virtual convolver sink for handheld speakers originated with their efforts.
