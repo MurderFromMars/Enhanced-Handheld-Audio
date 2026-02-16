@@ -1,6 +1,6 @@
 # Enhanced Handheld Audio
 
-A PipeWire spatial audio convolver for Linux handhelds — and laptops too. Creates a virtual audio sink that simulates surround sound through built-in speakers on any device: Steam Deck, ROG Ally, Legion Go, GPD, AYANEO, or anything running PipeWire.
+A PipeWire spatial audio convolver for Linux handhelds, and laptops too. Creates a virtual audio sink that simulates surround sound through built-in speakers on any device: Steam Deck, ROG Ally, Legion Go, GPD, AYANEO, or anything running PipeWire.
 
 ---
 
